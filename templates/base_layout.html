@@ -1,0 +1,13 @@
+{{ define "base_layout"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{{ template "title" .}} - WildCare</title>
+  </head>
+  <body>
+    {{ template "content" .}}
+  </body>
+</html>
+{{ end }}

@@ -1,0 +1,17 @@
+{{ template "base_layout" }}
+
+{{define "title"}}Index{{end}}
+
+{{define "content"}}
+  <h1>Index</h1>
+  {{ if .User}}
+    Hello, {{.User.Name}}
+  {{ else }}
+    Hello Visitor,
+  {{ end }}
+  {{ if .User}}
+    <a href="/logout">Log Out</a>
+  {{ else }}
+    <a href="/login">Log In</a> or <a href="/signup">Sign Up</a>
+  {{ end }}
+{{end}}
