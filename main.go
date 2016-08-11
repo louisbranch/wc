@@ -2,22 +2,14 @@ package main
 
 import (
 	"errors"
-	"html/template"
 	"net/http"
 
 	"github.com/larissavoigt/wildcare/internal/session"
 	"github.com/larissavoigt/wildcare/internal/user"
+	"github.com/larissavoigt/wildcare/internal/view"
 )
 
-var tpl *template.Template
-
-func init() {
-	tpl = template.Must(template.New("").ParseGlob("templates/*.html"))
-}
-
 func main() {
-
-	http.Handle("/", session.Middleware(home))
 	http.Handle("/signup", session.Middleware(signup))
 	http.Handle("/login", session.Middleware(login))
 
@@ -26,12 +18,16 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	http.Handle("/", session.Middleware(index))
+
 	http.ListenAndServe(":8080", nil)
 }
 
-func home(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		tpl.ExecuteTemplate(w, "404", nil)
+func index(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+
+	if r.Method != "GET" || path != "/" {
+		view.NotFound(w)
 		return
 	}
 
@@ -45,7 +41,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		content.User = u
 	}
 
-	tpl.ExecuteTemplate(w, "index.html", content)
+	view.Render(w, "home/index", content)
 }
 
 func signup(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +55,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		tpl.ExecuteTemplate(w, "signup.html", content)
+		view.Render(w, "user/signup", content)
 	case "POST":
 		r.ParseForm()
 		email := r.Form.Get("email")
@@ -68,20 +64,20 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		user, err := user.Create(email, password)
 		if err != nil {
 			content.Error = err
-			tpl.ExecuteTemplate(w, "signup.html", content)
+			view.Render(w, "user/signup", content)
 			return
 		}
 
 		_, err = session.Create(w, user.ID)
 		if err != nil {
 			content.Error = err
-			tpl.ExecuteTemplate(w, "signup.html", content)
+			view.Render(w, "user/signup", content)
 			return
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound)
 	default:
-		tpl.ExecuteTemplate(w, "404", nil)
+		view.NotFound(w)
 	}
 }
 func login(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +91,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		tpl.ExecuteTemplate(w, "login.html", content)
+		view.Render(w, "user/login", content)
 	case "POST":
 		r.ParseForm()
 		email := r.Form.Get("email")
@@ -105,19 +101,19 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 		if !ok {
 			content.Error = errors.New("Email and password combination doesn't match")
-			tpl.ExecuteTemplate(w, "login.html", content)
+			view.Render(w, "user/login", content)
 			return
 		}
 
 		_, err := session.Create(w, u.ID)
 		if err != nil {
 			content.Error = errors.New("Failed to create session")
-			tpl.ExecuteTemplate(w, "login.html", content)
+			view.Render(w, "user/login", content)
 			return
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound)
 	default:
-		tpl.ExecuteTemplate(w, "404", nil)
+		view.NotFound(w)
 	}
 }
