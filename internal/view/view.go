@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -20,16 +21,20 @@ var views = struct {
 	cache: make(map[string]*template.Template),
 }
 
-func New(name string) *View {
-	return &View{paths: []string{templatePath(name)}}
+func New(names ...string) *View {
+	for i, n := range names {
+		p := []string{"templates"}
+		p = append(p, strings.Split(n+".html", "/")...)
+		names[i] = filepath.Join(p...)
+	}
+	return &View{paths: names}
 }
 
-func (v *View) Include(name string) *View {
-	v.paths = append(v.paths, templatePath(name))
-	return v
-}
+func (v View) Render(w http.ResponseWriter, data interface{}) {
+	for k, v := range views.cache {
+		fmt.Printf("%s: %s\n", k, v.Name())
+	}
 
-func (v *View) Render(w http.ResponseWriter, data interface{}) {
 	tpl, err := parse(v.paths...)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -42,7 +47,7 @@ func (v *View) Render(w http.ResponseWriter, data interface{}) {
 }
 
 func Render(w http.ResponseWriter, path string, data interface{}) {
-	v := New("layouts/base").Include(path)
+	v := New("layouts/base", path)
 	v.Render(w, data)
 }
 
@@ -50,15 +55,9 @@ func NotFound(w http.ResponseWriter) {
 	Render(w, "errors/404", nil)
 }
 
-func templatePath(name string) string {
-	p := []string{"templates"}
-	p = append(p, strings.Split(name+".html", "/")...)
-
-	return filepath.Join(p...)
-}
-
 func parse(names ...string) (tpl *template.Template, err error) {
 	cp := make([]string, len(names))
+	copy(cp, names)
 	sort.Strings(cp)
 	id := strings.Join(cp, ":")
 
