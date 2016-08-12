@@ -1,13 +1,24 @@
 package main
 
 import (
-	"errors"
-	"net/http"
+	"log"
 
-	"github.com/larissavoigt/wildcare/internal/session"
-	"github.com/larissavoigt/wildcare/internal/user"
-	"github.com/larissavoigt/wildcare/internal/view"
+	"github.com/larissavoigt/wildcare/internal/mysql"
 )
+
+func main() {
+
+	db, err := mysql.Open("wildcare")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	us := &mysql.UserService{DB: db}
+
+}
+
+/*
 
 func main() {
 	http.Handle("/signup", session.Middleware(signup))
@@ -117,3 +128,4 @@ func login(w http.ResponseWriter, r *http.Request) {
 		view.NotFound(w)
 	}
 }
+*/
