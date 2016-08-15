@@ -14,10 +14,14 @@ func Open(name string) (*sql.DB, error) {
 }
 
 type UserService struct {
-	DB *sql.DB
+	*sql.DB
 }
 
-func (s *UserService) Create(u *wildcare.User) error {
+type SessionService struct {
+	*sql.DB
+}
+
+func (s UserService) Create(u *wildcare.User) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), 0)
 	if err != nil {
 		return err
@@ -43,9 +47,9 @@ func (s *UserService) Create(u *wildcare.User) error {
 	return nil
 }
 
-func (s *UserService) User(id int64) (*wildcare.User, error) {
+func (db UserService) Find(id int64) (*wildcare.User, error) {
 	u := &wildcare.User{}
-	err := s.DB.QueryRow(`
+	err := db.QueryRow(`
 		SELECT id, name, email
 		FROM users where id=?`, id).Scan(
 		&u.ID, &u.Name, &u.Email)
@@ -53,10 +57,10 @@ func (s *UserService) User(id int64) (*wildcare.User, error) {
 	return u, err
 }
 
-func (s *UserService) Authenticate(email, password string) (*wildcare.User, bool) {
+func (db UserService) Authenticate(email, password string) (*wildcare.User, bool) {
 	u := &wildcare.User{}
 	var hash string
-	err := s.DB.QueryRow(`
+	err := db.QueryRow(`
 		SELECT id, name, email, password_hash
 		FROM users where email=?`, email).Scan(
 		&u.ID, &u.Name, &u.Email, &hash)
@@ -66,4 +70,23 @@ func (s *UserService) Authenticate(email, password string) (*wildcare.User, bool
 
 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return u, err == nil
+}
+
+func (db SessionService) Create(s *wildcare.Session) error {
+	_, err := db.Exec("INSERT INTO sessions (token, user_id, expires_at) VALUES(?, ?, ?)",
+		s.Token, s.UserID, s.Expires)
+	return err
+}
+
+func (db SessionService) Delete(us *wildcare.Session) error {
+	return nil
+}
+
+func (db SessionService) Find(token string) (*wildcare.Session, error) {
+	s := &wildcare.Session{}
+	err := db.QueryRow(`
+		SELECT user_id
+		FROM sessions where token=?`, token).Scan(&s.UserID)
+
+	return s, err
 }
