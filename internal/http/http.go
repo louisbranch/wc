@@ -13,15 +13,15 @@ type Handler struct {
 }
 
 func (h *Handler) ListenAndServe(addr string) error {
-	http.Handle("/signup", h.UserMiddleware(h.signup))
-	http.Handle("/login", h.UserMiddleware(h.login))
+	http.Handle("/signup", h.userMiddleware(h.signup))
+	http.Handle("/login", h.userMiddleware(h.login))
 	http.HandleFunc("/logout", h.logout)
-	http.Handle("/", h.UserMiddleware(h.index))
+	http.Handle("/", h.userMiddleware(h.index))
 
 	return http.ListenAndServe(addr, nil)
 }
 
-func (h *Handler) NewUserContext(r *http.Request) context.Context {
+func (h *Handler) newUserContext(r *http.Request) context.Context {
 	ctx := r.Context()
 
 	cookie, err := r.Cookie("session")
@@ -44,14 +44,14 @@ func (h *Handler) NewUserContext(r *http.Request) context.Context {
 	return context.WithValue(ctx, "user", u)
 }
 
-func CurrentUser(ctx context.Context) (*wildcare.User, bool) {
+func currentUser(ctx context.Context) (*wildcare.User, bool) {
 	u, ok := ctx.Value("user").(*wildcare.User)
 	return u, ok
 }
 
-func (h *Handler) UserMiddleware(next http.HandlerFunc) http.Handler {
+func (h *Handler) userMiddleware(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := h.NewUserContext(r)
+		ctx := h.newUserContext(r)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

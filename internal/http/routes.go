@@ -5,14 +5,13 @@ import (
 	"net/http"
 
 	"github.com/larissavoigt/wildcare"
-	"github.com/larissavoigt/wildcare/internal/view"
 )
 
 func (h *Handler) index(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
 	if r.Method != "GET" || path != "/" {
-		view.NotFound(w)
+		NotFound(w)
 		return
 	}
 
@@ -20,17 +19,17 @@ func (h *Handler) index(w http.ResponseWriter, r *http.Request) {
 		User *wildcare.User
 	}{}
 
-	u, ok := CurrentUser(r.Context())
+	u, ok := currentUser(r.Context())
 
 	if ok {
 		content.User = u
 	}
 
-	view.Render(w, "home/index", content)
+	Render(w, "home/index", content)
 }
 
 func (h *Handler) signup(w http.ResponseWriter, r *http.Request) {
-	_, ok := CurrentUser(r.Context())
+	_, ok := currentUser(r.Context())
 
 	if ok {
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -40,7 +39,7 @@ func (h *Handler) signup(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		view.Render(w, "user/signup", content)
+		Render(w, "user/signup", content)
 	case "POST":
 		r.ParseForm()
 		email := r.Form.Get("email")
@@ -54,24 +53,24 @@ func (h *Handler) signup(w http.ResponseWriter, r *http.Request) {
 		err := h.UserService.Create(user)
 		if err != nil {
 			content.Error = err
-			view.Render(w, "user/signup", content)
+			Render(w, "user/signup", content)
 			return
 		}
 
-		_, err = h.CreateSession(w, user.ID)
+		_, err = h.createSession(w, user.ID)
 		if err != nil {
 			content.Error = err
-			view.Render(w, "user/signup", content)
+			Render(w, "user/signup", content)
 			return
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound)
 	default:
-		view.NotFound(w)
+		NotFound(w)
 	}
 }
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
-	_, ok := CurrentUser(r.Context())
+	_, ok := currentUser(r.Context())
 
 	if ok {
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -81,34 +80,34 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		view.Render(w, "user/login", content)
+		Render(w, "user/login", content)
 	case "POST":
 		r.ParseForm()
 		email := r.Form.Get("email")
 		password := r.Form.Get("password")
 
-		u, ok := h.AuthenticateUser(email, password)
+		u, ok := h.authenticateUser(email, password)
 
 		if !ok {
 			content.Error = errors.New("Email and password combination doesn't match")
-			view.Render(w, "user/login", content)
+			Render(w, "user/login", content)
 			return
 		}
 
-		_, err := h.CreateSession(w, u.ID)
+		_, err := h.createSession(w, u.ID)
 		if err != nil {
 			content.Error = errors.New("Failed to create session")
-			view.Render(w, "user/login", content)
+			Render(w, "user/login", content)
 			return
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound)
 	default:
-		view.NotFound(w)
+		NotFound(w)
 	}
 }
 
 func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
-	h.DestroySession(w, r)
+	h.destroySession(w, r)
 	http.Redirect(w, r, "/", http.StatusFound)
 }

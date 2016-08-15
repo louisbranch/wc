@@ -10,7 +10,7 @@ import (
 	"github.com/larissavoigt/wildcare"
 )
 
-func (h *Handler) CreateSession(w http.ResponseWriter, id int64) (*wildcare.Session, error) {
+func (h *Handler) createSession(w http.ResponseWriter, id int64) (*wildcare.Session, error) {
 	t, err := token()
 
 	if err != nil {
@@ -48,7 +48,7 @@ func token() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-func (h *Handler) DestroySession(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) destroySession(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session")
 	if err != nil {
 		return
@@ -75,6 +75,7 @@ func (h *Handler) DestroySession(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 }
 
-func (h *Handler) AuthenticateUser(email, password string) (*wildcare.User, bool) {
+func (h *Handler) authenticateUser(email, password string) (*wildcare.User, bool) {
+	//FIXME
 	return nil, false
 }
