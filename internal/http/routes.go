@@ -86,7 +86,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 		email := r.Form.Get("email")
 		password := r.Form.Get("password")
 
-		u, ok := h.authenticateUser(email, password)
+		u, ok := h.UserService.Authenticate(email, password)
 
 		if !ok {
 			content.Error = errors.New("Email and password combination doesn't match")

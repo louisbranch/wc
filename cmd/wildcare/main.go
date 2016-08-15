@@ -22,21 +22,3 @@ func main() {
 
 	h.ListenAndServe(":8080")
 }
-
-/*
-
-func main() {
-	http.Handle("/signup", session.Middleware(signup))
-	http.Handle("/login", session.Middleware(login))
-
-	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-		session.Destroy(w, r)
-		http.Redirect(w, r, "/", http.StatusFound)
-	})
-
-	http.Handle("/", session.Middleware(index))
-
-	http.ListenAndServe(":8080", nil)
-}
-
-*/

@@ -74,8 +74,3 @@ func (h *Handler) destroySession(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, cookie)
 }
-
-func (h *Handler) authenticateUser(email, password string) (*wildcare.User, bool) {
-	//FIXME
-	return nil, false
-}

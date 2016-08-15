@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -31,10 +30,6 @@ func NewView(names ...string) *View {
 }
 
 func (v View) Render(w http.ResponseWriter, data interface{}) {
-	for k, v := range views.cache {
-		fmt.Printf("%s: %s\n", k, v.Name())
-	}
-
 	tpl, err := parseViews(v.paths...)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
