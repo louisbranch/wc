@@ -47,6 +47,7 @@ func Render(w http.ResponseWriter, path string, data interface{}) {
 }
 
 func NotFound(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
 	Render(w, "errors/404", nil)
 }
 
