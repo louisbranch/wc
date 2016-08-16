@@ -3,10 +3,10 @@ package wildcare
 import "time"
 
 type User struct {
-	ID       int64
-	Name     string
-	Email    string
-	Password string
+	ID           int64
+	Name         string
+	Email        string
+	PasswordHash string
 }
 
 type Session struct {
@@ -16,8 +16,8 @@ type Session struct {
 }
 
 type UserService interface {
-	Authenticate(email, password string) (*User, bool)
 	Find(id int64) (*User, error)
+	FindByEmail(email string) (*User, error)
 	Create(*User) error
 }
 
@@ -25,4 +25,9 @@ type SessionService interface {
 	Create(*Session) error
 	Delete(*Session) error
 	Find(token string) (*Session, error)
+}
+
+type AuthenticationService interface {
+	HashPassword(u *User, password string) error
+	AuthenticateUser(u *User, password string) bool
 }

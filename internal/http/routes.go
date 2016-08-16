@@ -5,13 +5,14 @@ import (
 	"net/http"
 
 	"github.com/larissavoigt/wildcare"
+	"github.com/larissavoigt/wildcare/internal/http/view"
 )
 
 func (h *Handler) index(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
 	if r.Method != "GET" || path != "/" {
-		NotFound(w)
+		view.NotFound(w)
 		return
 	}
 
@@ -25,7 +26,7 @@ func (h *Handler) index(w http.ResponseWriter, r *http.Request) {
 		content.User = u
 	}
 
-	Render(w, "home/index", content)
+	view.Render(w, "home/index", content)
 }
 
 func (h *Handler) signup(w http.ResponseWriter, r *http.Request) {
@@ -39,34 +40,38 @@ func (h *Handler) signup(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		Render(w, "user/signup", content)
+		view.Render(w, "user/signup", content)
 	case "POST":
 		r.ParseForm()
 		email := r.Form.Get("email")
 		password := r.Form.Get("password")
 
-		user := &wildcare.User{
-			Email:    email,
-			Password: password,
-		}
+		user := &wildcare.User{Email: email}
 
-		err := h.UserService.Create(user)
+		err := h.AuthenticationService.HashPassword(user, password)
 		if err != nil {
 			content.Error = err
-			Render(w, "user/signup", content)
+			view.Render(w, "user/signup", content)
+			return
+		}
+
+		err = h.UserService.Create(user)
+		if err != nil {
+			content.Error = err
+			view.Render(w, "user/signup", content)
 			return
 		}
 
 		_, err = h.createSession(w, user.ID)
 		if err != nil {
 			content.Error = err
-			Render(w, "user/signup", content)
+			view.Render(w, "user/signup", content)
 			return
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound)
 	default:
-		NotFound(w)
+		view.NotFound(w)
 	}
 }
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
@@ -80,30 +85,38 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "GET":
-		Render(w, "user/login", content)
+		view.Render(w, "user/login", content)
 	case "POST":
 		r.ParseForm()
 		email := r.Form.Get("email")
 		password := r.Form.Get("password")
 
-		u, ok := h.UserService.Authenticate(email, password)
+		u, err := h.UserService.FindByEmail(email)
 
-		if !ok {
+		if err != nil {
 			content.Error = errors.New("Email and password combination doesn't match")
-			Render(w, "user/login", content)
+			view.Render(w, "user/login", content)
 			return
 		}
 
-		_, err := h.createSession(w, u.ID)
+		ok := h.AuthenticationService.AuthenticateUser(u, password)
+
+		if !ok {
+			content.Error = errors.New("Email and password combination doesn't match")
+			view.Render(w, "user/login", content)
+			return
+		}
+
+		_, err = h.createSession(w, u.ID)
 		if err != nil {
 			content.Error = errors.New("Failed to create session")
-			Render(w, "user/login", content)
+			view.Render(w, "user/login", content)
 			return
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound)
 	default:
-		NotFound(w)
+		view.NotFound(w)
 	}
 }
 

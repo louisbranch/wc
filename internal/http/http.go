@@ -8,8 +8,9 @@ import (
 )
 
 type Handler struct {
-	UserService    wildcare.UserService
-	SessionService wildcare.SessionService
+	UserService           wildcare.UserService
+	SessionService        wildcare.SessionService
+	AuthenticationService wildcare.AuthenticationService
 }
 
 func (h *Handler) ListenAndServe(addr string) error {
