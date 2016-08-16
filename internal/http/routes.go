@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/larissavoigt/wildcare"
+	"github.com/larissavoigt/wildcare/internal/http/auth"
 	"github.com/larissavoigt/wildcare/internal/http/view"
 )
 
@@ -48,7 +49,7 @@ func (h *Handler) signup(w http.ResponseWriter, r *http.Request) {
 
 		user := &wildcare.User{Email: email}
 
-		err := h.AuthenticationService.HashPassword(user, password)
+		err := auth.HashPassword(user, password)
 		if err != nil {
 			content.Error = err
 			view.Render(w, "user/signup", content)
@@ -99,7 +100,7 @@ func (h *Handler) login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		ok := h.AuthenticationService.AuthenticateUser(u, password)
+		ok := auth.AuthenticateUser(u, password)
 
 		if !ok {
 			content.Error = errors.New("Email and password combination doesn't match")

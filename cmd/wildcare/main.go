@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 
-	"github.com/larissavoigt/wildcare/internal/auth"
 	"github.com/larissavoigt/wildcare/internal/http"
 	"github.com/larissavoigt/wildcare/internal/mysql"
 )
@@ -17,9 +16,8 @@ func main() {
 	defer db.Close()
 
 	h := &http.Handler{
-		UserService:           &mysql.UserService{db},
-		SessionService:        &mysql.SessionService{db},
-		AuthenticationService: &auth.AuthenticationService{},
+		UserService:    &mysql.UserService{db},
+		SessionService: &mysql.SessionService{db},
 	}
 
 	log.Println("running on localhost:8080")

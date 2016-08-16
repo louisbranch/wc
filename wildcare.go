@@ -26,8 +26,3 @@ type SessionService interface {
 	Delete(*Session) error
 	Find(token string) (*Session, error)
 }
-
-type AuthenticationService interface {
-	HashPassword(u *User, password string) error
-	AuthenticateUser(u *User, password string) bool
-}
